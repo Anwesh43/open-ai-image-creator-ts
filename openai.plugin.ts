@@ -23,7 +23,7 @@ export class OpenAIHelper {
         const body : CreateImageRequest = {
             prompt,
             n:2, 
-            size: "1024x1024" 
+            size: "256x256" 
 
         }
         console.log("REQUEST_BODY_TO_OPENAI", body)
