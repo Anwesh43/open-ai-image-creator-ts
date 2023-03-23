@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyServerOptions } from "fastify";
-import { Configuration, CreateImageRequest, ListModelsResponse, OpenAIApi } from "openai";
+import { Configuration, CreateImageRequest, ImagesResponse, ListModelsResponse, OpenAIApi } from "openai";
 import fp from 'fastify-plugin'
+import { GenerateImageResponse } from "./typing";
 export class OpenAIHelper {
 
     api : OpenAIApi
@@ -16,6 +17,25 @@ export class OpenAIHelper {
     async listModels() : Promise<ListModelsResponse> {
        const models =  await this.api.listModels()
        return models.data
+    }
+
+    async createImage(prompt : string) : Promise<ImagesResponse> {
+        const body : CreateImageRequest = {
+            prompt,
+            n:2, 
+            size: "1024x1024" 
+
+        }
+        console.log("REQUEST_BODY_TO_OPENAI", body)
+        try {
+            const response = await this.api.createImage(body)
+            return response.data as GenerateImageResponse
+        } catch(err) {
+            //console.log("Error", err)
+            const errObj = err as any 
+            console.log(errObj.response)
+            throw err
+        }
     }
 }
 
