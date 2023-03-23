@@ -1,13 +1,22 @@
 import fastify, { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 import { config } from "dotenv";
+import openAiPlugin, { OpenAIHelper } from "./openai.plugin";
+
+
+interface OpenAiFastifyInstance extends FastifyInstance {
+    openai : OpenAIHelper
+}
 
 const init = async () => {
     config()
     const server : FastifyInstance = fastify()
-    server.get("/hello", (req : FastifyRequest, reply : FastifyReply) => {
+    server.register(openAiPlugin)
+    const newServer : OpenAiFastifyInstance = server as OpenAiFastifyInstance
+    server.get("/hello", async (req : FastifyRequest, reply : FastifyReply) => {
         console.log(req.url, req.query)
-        reply.code(200).send({status: "ok"})
+        const models = await newServer.openai.listModels()
+        reply.code(200).send({status: "ok", models})
     })
     try {
 
@@ -16,7 +25,7 @@ const init = async () => {
         })
         console.log("started server")
     } catch(ex) {
-        console.log("failed to start server")
+        console.log("failed to start server", ex)
     }
     
 }
