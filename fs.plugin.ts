@@ -2,6 +2,7 @@ import axios from "axios";
 import { FastifyInstance, FastifyServerOptions } from "fastify";
 import {writeFileSync} from 'fs'
 import { FSHelper } from "./typing";
+import fp from "fastify-plugin";
 
 const fsHelper = (fastify : FastifyInstance, opts : FastifyServerOptions, next : () => void) => {
     console.log("FSHelper", opts)
@@ -12,7 +13,8 @@ const fsHelper = (fastify : FastifyInstance, opts : FastifyServerOptions, next :
             }
             const response = await axios.get(url, {responseType: "arraybuffer"})
             const data = Buffer.from(response.data, 'binary').toString('base64')
-            writeFileSync(`${prompt.split(" ").join("+")}.png`, data)
+            console.log("BASE64_DATA", data)
+            writeFileSync(`${prompt.split(" ").join("+")}.png`, Buffer.from(data, 'base64'))
             console.log("Written to file")
         }
     }
@@ -20,4 +22,4 @@ const fsHelper = (fastify : FastifyInstance, opts : FastifyServerOptions, next :
     next()
 }
 
-export default fsHelper
+export default fp(fsHelper)
