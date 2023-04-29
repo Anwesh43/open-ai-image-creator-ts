@@ -4,8 +4,9 @@ import { config } from "dotenv";
 import openAiPlugin from "./openai.plugin";
 import { GenerateImageRequest, GenerateImageResponse, OpenAiFastifyInstance } from "./typing";
 import fsHelper from "./fs.plugin";
-
-
+import fastifyStatic from '@fastify/static'
+import fastifyMultipart from "@fastify/multipart";
+import path from "path";
 
 const map : Record<string, Array<string | undefined>>  = {
 
@@ -13,6 +14,10 @@ const map : Record<string, Array<string | undefined>>  = {
 const init = async () => {
     config()
     const server : FastifyInstance = fastify()
+    server.register(fastifyMultipart)
+    server.register(fastifyStatic, {
+        root: path.join(__dirname, 'public')
+    })
     server.register(openAiPlugin)
     server.register(fsHelper)
     const newServer : OpenAiFastifyInstance = server as OpenAiFastifyInstance
@@ -54,6 +59,19 @@ const init = async () => {
                 reason: JSON.stringify(err)
             })
         }
+    })
+
+    server.post("/handleImage", async(req : FastifyRequest, reply : FastifyReply) => {
+        const file = await req.file()
+        // const tempWs = createWriteStream(file?.filename || 'temp.png')
+        // file?.file.pipe(tempWs)
+        // tempWs.on('close', async () => {
+        //     console.log("Done writing")
+            
+        // })
+        await newServer.openai?.createImageEdit('add mountains behind the couple', file?.file)
+        
+        reply.send("Done")
     })
     try {
 

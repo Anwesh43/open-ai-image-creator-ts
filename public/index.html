@@ -1,0 +1,27 @@
+<body>
+    
+    <h1>Upload file</h1>
+    <input type = "file" id = "file"></br>
+    <input type = "text" id = "prompt" placeholder="Enter prompt"></br>
+    <button id = "submit">Submit</button>
+    <script>
+        const formData = new FormData()
+        let fn = null
+        let prompt = ""
+        document.getElementById('file').onchange = (e) => {
+            fn = e.target.files[0] 
+        }
+        document.getElementById('prompt').onblur = (e) => {
+            prompt = e.target.value 
+        }
+        document.getElementById('submit').onclick = () => {
+            if (!!fn && !!prompt) {
+                const formData = new FormData()
+                formData.append("image", fn)
+                formData.append("prompt", prompt)
+                console.log(formData)
+                fetch('/handleImage', {method: 'POST', body: formData}).then(res => res.json()).then(console.log)
+            }
+        }
+    </script>
+</body>

@@ -37,6 +37,16 @@ export class OpenAIHelper {
             throw err
         }
     }
+
+    async createImageEdit(prompt : string, input : any) {
+        // const size = "512x512"
+        try {
+            const response = await this.api.createImageEdit(input, prompt)
+            console.log("Response", response)
+        } catch(err) {
+            console.log("Error", err)
+        }
+    }
 }
 
 const openAiPlugin = (fastify : FastifyInstance, opts : FastifyServerOptions, next : () => void) => {
