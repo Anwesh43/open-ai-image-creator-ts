@@ -21,3 +21,12 @@ export interface OpenAiFastifyInstance extends FastifyInstance {
     openai? : OpenAIHelper
     fs? : FSHelper
 }
+
+export interface CompletionBody {
+    input : string, 
+    topic : string 
+}
+
+export interface SummarizeResponse {
+   response : any 
+}

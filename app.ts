@@ -2,19 +2,23 @@ import fastify, { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
 
 import { config } from "dotenv";
 import openAiPlugin from "./openai.plugin";
-import { GenerateImageRequest, GenerateImageResponse, OpenAiFastifyInstance } from "./typing";
+import { CompletionBody, GenerateImageRequest, GenerateImageResponse, OpenAiFastifyInstance } from "./typing";
 import fsHelper from "./fs.plugin";
 import fastifyStatic from '@fastify/static'
 import fastifyMultipart from "@fastify/multipart";
 import path from "path";
-
+import {File} from '@web-std/file'
 const map : Record<string, Array<string | undefined>>  = {
 
 }
 const init = async () => {
     config()
     const server : FastifyInstance = fastify()
-    server.register(fastifyMultipart)
+    server.register(fastifyMultipart, {
+        limits: {
+            fileSize: 100000000
+        }
+    })
     server.register(fastifyStatic, {
         root: path.join(__dirname, 'public')
     })
@@ -63,16 +67,28 @@ const init = async () => {
 
     server.post("/handleImage", async(req : FastifyRequest, reply : FastifyReply) => {
         const file = await req.file()
-        // const tempWs = createWriteStream(file?.filename || 'temp.png')
-        // file?.file.pipe(tempWs)
-        // tempWs.on('close', async () => {
-        //     console.log("Done writing")
-            
-        // })
-        await newServer.openai?.createImageEdit('add mountains behind the couple', file?.file)
-        
+        if (!!file) {
+            const buffer = await file.toBuffer()
+            await newServer.openai?.createImageEdit('add mountains behind the couple', new File([buffer], file?.filename))
+        }
         reply.send("Done")
     })
+    
+
+    server.post("/summarize", async (req : FastifyRequest, reply : FastifyReply) => {
+        const body : CompletionBody = req.body as CompletionBody
+        console.log("BODY_FROM", body)
+        try {
+            const resp = await newServer.openai?.summarize(body.topic, body.input)
+            reply.send(resp?.response)
+        } catch(err) {
+            reply.code(500).send({
+                err, 
+                status: "Internal Error"
+            })
+        }
+    })
+
     try {
 
         await server.listen({
