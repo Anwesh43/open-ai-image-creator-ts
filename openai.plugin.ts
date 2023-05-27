@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyServerOptions } from "fastify";
-import { Configuration, CreateCompletionRequest, CreateImageRequest, ImagesResponse, ListModelsResponse, OpenAIApi } from "openai";
+import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, CreateCompletionRequest, CreateImageRequest, ImagesResponse, ListModelsResponse, OpenAIApi } from "openai";
 import fp from 'fastify-plugin'
 import { GenerateImageResponse, SummarizeResponse } from "./typing";
 import axios from 'axios'
@@ -64,7 +64,7 @@ export class OpenAIHelper {
             const prompt : string = `Summarize this ${topic}:\n\n${text.replace(/\\n/g, ' ')}\n`
             const request : CreateCompletionRequest = {
                 prompt,
-                model: 'text-davinci-003', 
+                model: 'text-davinci-002', 
                 temperature,
 
             }
@@ -79,6 +79,43 @@ export class OpenAIHelper {
             return {
                 response : err
             }
+        }
+    }
+
+    async chatCompletion(message : string, history : Array<ChatCompletionRequestMessage>, mainText : string) {
+        const model : string = 'gpt-3.5-turbo'
+        const temperature = 0.6
+        const newMessgages : Array<ChatCompletionRequestMessage> = [
+            {
+                role: "system", 
+                content: `you are a helpful assisstant and you will answer questions on below article: \n ${mainText}`
+            }
+        ]
+        const messages : Array<ChatCompletionRequestMessage> = [...newMessgages, ...history]
+        
+        messages.push({
+            role: "user", 
+            content: message 
+        })
+
+        const request : CreateChatCompletionRequest = {
+            model, 
+            messages,
+            temperature
+        }
+
+        try {
+            const response = await this.api.createChatCompletion(request)
+            if (response.data.choices.length == 0 || !response.data.choices[0].message) {
+                throw new Error("no choices found")
+            }
+            const messageResponse : ChatCompletionRequestMessage = response.data.choices[0].message
+            return {
+                data : messageResponse,
+                history: [...history, {role: "user", content: message}, messageResponse]
+            }
+        } catch(er) {
+            throw er 
         }
     }
 }

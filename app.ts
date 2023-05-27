@@ -2,7 +2,7 @@ import fastify, { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
 
 import { config } from "dotenv";
 import openAiPlugin from "./openai.plugin";
-import { CompletionBody, GenerateImageRequest, GenerateImageResponse, OpenAiFastifyInstance } from "./typing";
+import { ChatOnArticleBody, CompletionBody, GenerateImageRequest, GenerateImageResponse, OpenAiFastifyInstance } from "./typing";
 import fsHelper from "./fs.plugin";
 import fastifyStatic from '@fastify/static'
 import fastifyMultipart from "@fastify/multipart";
@@ -85,6 +85,19 @@ const init = async () => {
             reply.code(500).send({
                 err, 
                 status: "Internal Error"
+            })
+        }
+    })
+    
+    server.post("/chat-on-article", async (req : FastifyRequest, reply : FastifyReply) => {
+        const body : ChatOnArticleBody = req.body as ChatOnArticleBody
+        try {
+            const resp = await newServer.openai?.chatCompletion(body.message, body.history, body.article)
+            reply.send(resp)
+        } catch(err) {
+            reply.code(500).send({
+                err, 
+                status : "Internal Error"
             })
         }
     })

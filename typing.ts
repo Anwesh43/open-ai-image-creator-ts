@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify"
+import { ChatCompletionRequestMessage } from "openai"
 import { OpenAIHelper } from "./openai.plugin"
 
 interface URLEntry {
@@ -29,4 +30,10 @@ export interface CompletionBody {
 
 export interface SummarizeResponse {
    response : any 
+}
+
+export interface ChatOnArticleBody {
+    article : string, 
+    history : Array<ChatCompletionRequestMessage>,
+    message : string 
 }
